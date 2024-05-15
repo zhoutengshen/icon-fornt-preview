@@ -1,3 +1,9 @@
+import * as vs from 'vscode';
+import { isJsonFile } from '../utils/file';
+
+// 文件系统
+const { fs, } = vs.workspace;
+
 
 /** 配置文件接口 */
 interface IConfig {
@@ -11,9 +17,9 @@ interface IConfig {
 }
 
 /** 配置文件加载服务 */
-export class ConfigService {
+export default class ConfigService {
     private static instance: ConfigService;
-    private static config: IConfig;
+    private static configs: IConfig[];
 
     /**
      * 获取单例
@@ -28,11 +34,28 @@ export class ConfigService {
     }
 
     /**
-     * 加载配置文件
+     * 加载工作空间配置文件
      */
-    public static loadConfig(url: string): void {
+    public static async loadWorkspaceConfig(path: string) {
+        // 根
+        const rootUris = vs.workspace.workspaceFolders?.map(item => vs.Uri.joinPath(item.uri, path));
+        const files = rootUris?.filter(async uri => {
+            // 排除不存在的文件
+            try {
+                return fs.stat(uri).then(() => true);
+            } catch (error) {
+                return false;
+            }
+        }).map(uri => fs.readFile(uri).then(resp => {
+            return resp.toString();
+        })) || [];
+        const fileStringList = await Promise.all(files);
+        const configList = fileStringList.map(item => {
+            return JSON.parse(item) as IConfig;
+        });
+        ConfigService.configs = configList;
+        console.log(ConfigService.configs);
         
-        return config;
     }
 
 }

@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import ConfigService from './service/config';
 
 const iconList = [
 	{
@@ -198,21 +199,9 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 		renderIcon(lineIconMap);
 	});
+
 	let debounceFunc: ReturnType<typeof debounce>;
 	vscode.workspace.onDidChangeTextDocument(event => {
-		// const changeLines = event.contentChanges.map(change => change.range.start.line);
-		// // 带有icon的行号和icon的映射
-		// const withIconLineMap = textEditorDecorationCacheList.reduce((prev, cur) => {
-		// 	prev[cur.line] = cur.name;
-		// 	return prev;
-		// }, {} as any);
-		// // 判断是否编辑了icon 所在的行
-		// const isChangeIconLine = changeLines.some(line => {
-		// 	return withIconLineMap[line] !== undefined;
-		// });
-		// if (!isChangeIconLine) {
-		// 	return;
-		// }
 		if (!checkAllDocHasIcon()) {
 			return;
 		}
@@ -229,6 +218,9 @@ export function activate(context: vscode.ExtensionContext) {
 		}, 50);
 		debounceFunc();
 	});
+
+	// 工作目录配置文件读取
+	ConfigService.loadWorkspaceConfig('icon-preview.json');
 	// 插件销毁释放缓存
 	context.subscriptions.push({
 		dispose() {
@@ -236,7 +228,7 @@ export function activate(context: vscode.ExtensionContext) {
 				const { decoration } = textEditorDecorationCacheList.pop() as any;
 				vscode.window.activeTextEditor?.setDecorations(decoration, []);
 			}
-		}
+		},
+	
 	});
-
 }
