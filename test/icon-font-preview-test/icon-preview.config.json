@@ -1,0 +1,7 @@
+{
+    "tagName": "my-icon",
+    "propName": "name",
+    "target": "iconfont.js",
+    "parser": "iconfont",
+    "iconFontPrefix": "icon-"
+}
