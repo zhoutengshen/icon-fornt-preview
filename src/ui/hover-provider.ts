@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { getRowIndexIconMap } from '../utils/ui';
-import { CacheService } from '../service/cache';
+import { IconService } from '../service/icon';
 
 export class Base64ImgHoverProvider implements vscode.HoverProvider {
     provideHover(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): vscode.ProviderResult<vscode.Hover> {
@@ -13,7 +13,7 @@ export class Base64ImgHoverProvider implements vscode.HoverProvider {
         if (!iconName) {
             return;
         }
-        const icon = CacheService.getIconList().find(icon => icon.id === iconName);
+        const icon = IconService.getIconList().find(icon => icon.id === iconName);
         if (!icon) {
             return;
         }

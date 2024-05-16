@@ -1,16 +1,25 @@
 import { IConfig } from "../service/config";
 import { IBasicParser, IParserResult } from "./basic";
-import { IconfontParser } from './iconfont';
+import { IconFontParser } from './iconfont';
 
 /** 工厂 */
 export class ParserFactory {
     private static parserMap: Record<string, IBasicParser> = {
-        'iconfont': new IconfontParser()
+        'iconfont': new IconFontParser()
     };
 
-    static transform(config: IConfig): IParserResult[] {
+    static transform(config: IConfig): Promise<IParserResult[]> {
         const parserName = config.parser;
         const parser = ParserFactory.parserMap[parserName];
-        return parser.transform();
+        return parser.transform(config);
+    }
+
+    /**
+     * 注册
+     * @param name 
+     * @param parser 
+     */
+    static register(name: string, parser: IBasicParser) {
+        ParserFactory.parserMap[name] = parser;
     }
 }

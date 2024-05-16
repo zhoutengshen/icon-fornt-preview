@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { CacheService } from '../service/cache';
+import { IconService } from '../service/icon';
 
 export class Base64CompletionItemProvider implements vscode.CompletionItemProvider {
 
@@ -41,7 +41,7 @@ export class Base64CompletionItemProvider implements vscode.CompletionItemProvid
         if (!isPass) {
             return undefined;
         }
-        const iconCompletionItemList = CacheService.getIconList().map(icon => {
+        const iconCompletionItemList = IconService.getIconList().map(icon => {
             const iconCompletionItem = new vscode.CompletionItem(icon.id, vscode.CompletionItemKind.Property);
             const iconMd = new vscode.MarkdownString(`<img height="100px" width="100px" src="${icon.base64}"></img>`, true);
             iconMd.supportHtml = true;

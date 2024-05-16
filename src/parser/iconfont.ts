@@ -1,20 +1,27 @@
 import { IConfig } from "../service/config";
 import { svg2ImgBase64 } from "../utils";
+import { isExistFile } from "../utils/file";
 import { IBasicParser, IParserResult } from "./basic";
 import * as vs from 'vscode';
 
 // 阿里字体图标解析（提取）
-export class IconfontParser implements IBasicParser {
-    transform(config: IConfig): IParserResult[] {
+export class IconFontParser implements IBasicParser {
+    async transform(config: IConfig): Promise<IParserResult[]> {
         const { target, workspace } = config;
         const fullPath = vs.Uri.joinPath(vs.Uri.parse(workspace!), target);
-        // TODO: 判断文件是否存在
-        vs.workspace.fs.readFile(fullPath);
-        return [];
+        const isExist = await isExistFile(fullPath);
+        if (!isExist) {
+            return [];
+        }
+        const content = await vs.workspace.fs.readFile(fullPath).then(resp => resp.toString());
+        // iconFontPrefix 扩展属性
+        return this.extractSvgSymbol(content, config.iconFontPrefix);
     }
 
     // 抽取svg symbol信息
-    extractSvgSymbol(content: string, iconPrefix: string = 'icon-') {
+    private extractSvgSymbol(content: string, iconPrefix: string = '') {
+        console.log('抽取阿里Svg图标');
+        
         // prog-id window._iconfont_svg_string_4152733 =
         const reg = /_iconfont_svg_string_(\d+)/g;
         const progId = (content.match(reg) && RegExp.$1) || '';

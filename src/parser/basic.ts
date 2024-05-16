@@ -8,5 +8,5 @@ export interface IParserResult {
 }
 
 export interface IBasicParser {
-    transform(config: IConfig): IParserResult[]
+    transform(config: IConfig): Promise<IParserResult[]>
 }

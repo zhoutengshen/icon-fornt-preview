@@ -1,12 +1,13 @@
 import * as vs from 'vscode';
-import { isJsonFile } from '../utils/file';
+import { isExistFile } from '../utils/file';
 
 // 文件系统
-const { fs, } = vs.workspace;
+const { fs } = vs.workspace;
 
 
 /** 配置文件接口 */
 export interface IConfig {
+    /** 其他扩展的属性 */
     [key: string]: any;
     /** 标签名称 */
     tagName?: string
@@ -18,6 +19,9 @@ export interface IConfig {
     parser: string
     /** 工作空间 */
     workspace?: string
+    // ============ 扩展属性
+    // 阿里图标前缀
+    iconFontPrefix?: string
 }
 
 /** 配置文件加载服务 */
@@ -48,23 +52,21 @@ export default class ConfigService {
     public async loadWorkspaceConfig(path?: string) {
         path = path || 'icon-preview.config.json';
         // 根
-        const rootUris = vs.workspace.workspaceFolders?.map(item => ({
+        const rootUriPromiseList = vs.workspace.workspaceFolders?.map(async item => ({
             path: vs.Uri.joinPath(item.uri, path),
-            workspace: item.uri
-        }));
-        const resultPromiseList = rootUris?.filter(async uri => {
-            // 排除不存在的文件
-            try {
-                const { path } = uri;
-                return fs.stat(path).then(() => true);
-            } catch (error) {
-                return false;
-            }
-        }).map(async config => {
+            workspace: item.uri,
+            isExist: await isExistFile(vs.Uri.joinPath(item.uri, path))
+        })) || [];
+        const rootUris = (await Promise.all(rootUriPromiseList)).filter(item => item.isExist);
+        if (!rootUris.length) {
+            console.log(`工作空间没有配置文件，请添加：${path}`);
+        }
+        const resultPromiseList = rootUris.map(async config => {
             const path = config.path;
             const workspace = config.workspace;
             const resp = await fs.readFile(path);
             const jsonStr = resp.toString();
+            console.log(`加载${path.toString()}工作空间配置文件`);
             return {
                 ...JSON.parse(jsonStr) as IConfig,
                 workspace: workspace.toString()

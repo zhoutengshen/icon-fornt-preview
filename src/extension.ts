@@ -13,10 +13,10 @@ const checkAllDocHasIcon = (iconName = 'my-icon', prop = 'name') => {
 
 
 export function activate(context: vscode.ExtensionContext) {
+	console.log('插件激活');
 	const base64Decoration = new Base64Decoration();
 	const provider = vscode.languages.registerCompletionItemProvider(
 		'html', new Base64CompletionItemProvider(),
-		// 删除也触发
 		'"',
 		'=',
 	);

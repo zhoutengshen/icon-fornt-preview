@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { getRowIndexIconMap } from '../utils/ui';
-import { CacheService } from '../service/cache';
+import { IconService } from '../service/icon';
 
 export class Base64Decoration {
     // rowIndex decoration 关联，索引是rowIndex
@@ -31,7 +31,7 @@ export class Base64Decoration {
             return;
         }
         const keys = Object.keys(lineIconMap);
-        const iconNameImgMap = CacheService.getIconList().reduce((prev, cur) => {
+        const iconNameImgMap = IconService.getIconList().reduce((prev, cur) => {
             prev[cur.id] = cur.base64;
             return prev;
         }, {} as any);
