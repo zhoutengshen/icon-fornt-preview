@@ -18,25 +18,31 @@ interface IConfig {
 
 /** 配置文件加载服务 */
 export default class ConfigService {
+    private configs: IConfig[] | null = null;
     private static instance: ConfigService;
-    private static configs: IConfig[];
 
-    /**
-     * 获取单例
-     * @returns {Config} 返回配置文件实例
-     */
-    public static getInstance(): ConfigService {
+    private constructor() { }
+
+    public static getInstance() {
         if (ConfigService.instance) {
-            return ConfigService.instance;
+            const ist = new ConfigService();
+            ConfigService.instance = ist;
         }
-        ConfigService.instance = new ConfigService();
         return ConfigService.instance;
+    }
+
+    public getWorkspaceConfig(path?: string) {
+        if (this.configs === null) {
+            return this.loadWorkspaceConfig(path);
+        }
+        return Promise.resolve(this.configs);
     }
 
     /**
      * 加载工作空间配置文件
      */
-    public static async loadWorkspaceConfig(path: string) {
+    public async loadWorkspaceConfig(path?: string) {
+        path = path || 'icon-preview.config.json';
         // 根
         const rootUris = vs.workspace.workspaceFolders?.map(item => vs.Uri.joinPath(item.uri, path));
         const files = rootUris?.filter(async uri => {
@@ -53,9 +59,8 @@ export default class ConfigService {
         const configList = fileStringList.map(item => {
             return JSON.parse(item) as IConfig;
         });
-        ConfigService.configs = configList;
-        console.log(ConfigService.configs);
-        
+        this.configs = configList;
+        return configList;
     }
 
 }
