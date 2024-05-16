@@ -1,5 +1,13 @@
+import { ParserFactory } from "../parser/factory";
+import ConfigService from "./config";
+import * as vs from 'vscode';
+
 export class CacheService {
-    public static getIconList() {
+    public static async getIconList() {
+        const configList = await ConfigService.getInstance().getWorkspaceConfig();
+        const parserResult = configList.map(config => {
+            return ParserFactory.transform(config);
+        }).flat();
         const iconList = [
             {
                 "id": "no-videocamera",

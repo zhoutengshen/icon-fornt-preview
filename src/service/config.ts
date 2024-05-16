@@ -6,7 +6,7 @@ const { fs, } = vs.workspace;
 
 
 /** 配置文件接口 */
-interface IConfig {
+export interface IConfig {
     [key: string]: any;
     /** 标签名称 */
     tagName?: string
@@ -14,17 +14,21 @@ interface IConfig {
     propName?: string
     /** 图标地址(本地或者http/https地址) */
     target: string
+    /** 解析器 */
+    parser: string
+    /** 工作空间 */
+    workspace?: string
 }
 
 /** 配置文件加载服务 */
 export default class ConfigService {
-    private configs: IConfig[] | null = null;
+    private configs: Array<IConfig> | null = null;
     private static instance: ConfigService;
 
     private constructor() { }
 
     public static getInstance() {
-        if (ConfigService.instance) {
+        if (!ConfigService.instance) {
             const ist = new ConfigService();
             ConfigService.instance = ist;
         }
@@ -44,23 +48,31 @@ export default class ConfigService {
     public async loadWorkspaceConfig(path?: string) {
         path = path || 'icon-preview.config.json';
         // 根
-        const rootUris = vs.workspace.workspaceFolders?.map(item => vs.Uri.joinPath(item.uri, path));
-        const files = rootUris?.filter(async uri => {
+        const rootUris = vs.workspace.workspaceFolders?.map(item => ({
+            path: vs.Uri.joinPath(item.uri, path),
+            workspace: item.uri
+        }));
+        const resultPromiseList = rootUris?.filter(async uri => {
             // 排除不存在的文件
             try {
-                return fs.stat(uri).then(() => true);
+                const { path } = uri;
+                return fs.stat(path).then(() => true);
             } catch (error) {
                 return false;
             }
-        }).map(uri => fs.readFile(uri).then(resp => {
-            return resp.toString();
-        })) || [];
-        const fileStringList = await Promise.all(files);
-        const configList = fileStringList.map(item => {
-            return JSON.parse(item) as IConfig;
-        });
-        this.configs = configList;
-        return configList;
+        }).map(async config => {
+            const path = config.path;
+            const workspace = config.workspace;
+            const resp = await fs.readFile(path);
+            const jsonStr = resp.toString();
+            return {
+                ...JSON.parse(jsonStr) as IConfig,
+                workspace: workspace.toString()
+            };
+        }) || [];
+
+        this.configs = await Promise.all(resultPromiseList);
+        return this.configs;
     }
 
 }

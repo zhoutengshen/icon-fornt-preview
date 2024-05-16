@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import { debounce } from './utils/index';
-import { getRowIndexIconMap } from './utils/ui';
 import { Base64ImgHoverProvider } from './ui/hover-provider';
 import { Base64Decoration } from './ui/decoration';
 import { Base64CompletionItemProvider } from './ui/completion-provider';

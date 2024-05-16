@@ -13,14 +13,16 @@ export class Base64Decoration {
     dispose() {
         const { textEditorDecorationCacheList } = this;
         while (textEditorDecorationCacheList.length) {
-            const { decoration } = textEditorDecorationCacheList.pop() as any;
-            vscode.window.activeTextEditor?.setDecorations(decoration, []);
+            const { decoration } = textEditorDecorationCacheList.pop() || {};
+            if (decoration) {
+                vscode.window.activeTextEditor?.setDecorations(decoration, []);
+            }
         }
     }
 
     reRender() {
         this.dispose();
-        this.reRender();
+        this.render();
     }
 
     render() {
