@@ -4,6 +4,7 @@ import { Base64ImgHoverProvider } from './ui/hover-provider';
 import { Base64Decoration } from './ui/decoration';
 import { Base64CompletionItemProvider } from './ui/completion-provider';
 import { getFileType } from './utils/file';
+import ConfigService from './service/config';
 
 // 检查整个文档是否需要显示icon
 const checkAllDocHasIcon = (iconName = 'my-icon', prop = 'name') => {
@@ -33,7 +34,8 @@ export function activate(context: vscode.ExtensionContext) {
 	let debounceFunc: ReturnType<typeof debounce>;
 	vscode.workspace.onDidChangeTextDocument(event => {
 		const fileType = getFileType(event.document.fileName, false);
-		if (!checkAllDocHasIcon() || !fileType || !enableFileTypes.includes(fileType)) {
+		const config = ConfigService.getInstance().getCurWorkspaceConfigSync();
+		if (!checkAllDocHasIcon(config?.tagName, config?.propName) || !fileType || !enableFileTypes.includes(fileType)) {
 			return;
 		}
 		debounceFunc = debounceFunc || debounce(() => {

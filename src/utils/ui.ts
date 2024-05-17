@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import ConfigService from '../service/config';
 
 const getRowTextMatchReg = (iconName = 'my-icon', prop = 'name') => {
     const regStr = `<${iconName}.*? [:]{0,1}${prop}=['"](.+?)['"]`;
@@ -18,13 +19,14 @@ export const getRowIndexIconMap = (lineList: Array<number> = []) => {
     let lineCount = document.lineCount;
     lineList = lineList.length ? lineList : Array.from({ length: lineCount }, (_, i) => i);
     const lineIconMap: Record<string, string> = {};
+    const config = ConfigService.getInstance().getCurWorkspaceConfigSync();
     while (lineList.length) {
         const curLine = lineList.shift();
         if (curLine === undefined) {
             lineIconMap;
         }
         const lineText = document.lineAt(curLine!).text;
-        const regex = getRowTextMatchReg();
+        const regex = getRowTextMatchReg(config?.tagName, config?.propName);
         const matches = regex.exec(lineText);
         if (matches && matches[1]) {
             const name = matches[1].replace(/['"]/g, '');

@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { IconService } from '../service/icon';
+import ConfigService from '../service/config';
 
 export class Base64CompletionItemProvider implements vscode.CompletionItemProvider {
 
@@ -36,7 +37,8 @@ export class Base64CompletionItemProvider implements vscode.CompletionItemProvid
     }
 
     provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken, context: vscode.CompletionContext): vscode.ProviderResult<vscode.CompletionItem[] | vscode.CompletionList<vscode.CompletionItem>> {
-        const isPass = this.isMatchCompletion(document, position);
+        const config = ConfigService.getInstance().getCurWorkspaceConfigSync();
+        const isPass = this.isMatchCompletion(document, position, config?.tagName, config?.propName);
         // 判断光标位置，如果不是在icon的name属性中，则不显示icon的补全
         if (!isPass) {
             return undefined;

@@ -39,18 +39,47 @@ export default class ConfigService {
         return ConfigService.instance;
     }
 
-    public getWorkspaceConfig(path?: string) {
+    public getWorkspaceConfigSync() {
+        if (!this.configs?.length) {
+            this.getWorkspaceConfig();
+        }
+        return this.configs;
+    }
+
+    public getWorkspaceConfig() {
         if (this.configs === null) {
-            return this.loadWorkspaceConfig(path);
+            return this.loadWorkspaceConfig();
         }
         return Promise.resolve(this.configs);
     }
 
     /**
+     * 同步获取
+     * 获取当前工作空间的配置文件
+     * @returns 
+     */
+    public getCurWorkspaceConfigSync() {
+        if (!this.configs?.length) {
+            this.getWorkspaceConfig();
+        }
+        return this.configs?.find(item => {
+            const { workspace } = item;
+            if (!workspace) {
+                return false;
+            }
+            // 判断了 Uri 是否是包含关系
+            const targetUri = vs.Uri.parse(workspace);
+            const curUri = vs.window.activeTextEditor?.document.uri;
+            const isInclude = curUri && curUri.fsPath.includes(targetUri.fsPath);
+            return isInclude;
+        });
+    }
+
+    /**
      * 加载工作空间配置文件
      */
-    public async loadWorkspaceConfig(path?: string) {
-        path = path || 'icon-preview.config.json';
+    public async loadWorkspaceConfig() {
+        const path = 'icon-preview.config.json';
         // 根
         const rootUriPromiseList = vs.workspace.workspaceFolders?.map(async item => ({
             path: vs.Uri.joinPath(item.uri, path),
