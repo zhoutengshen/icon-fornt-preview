@@ -1,11 +1,13 @@
 import * as vscode from 'vscode';
-import { getRowIndexIconMap } from '../utils/ui';
+import { getRowIndexIconMap, isPositionInPropRange } from '../utils/ui';
 import { IconService } from '../service/icon';
+import ConfigService from '../service/config';
 
 export class Base64ImgHoverProvider implements vscode.HoverProvider {
     provideHover(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): vscode.ProviderResult<vscode.Hover> {
+        const isHoverInProp = isPositionInPropRange(document, position);
         const lineIconMap = getRowIndexIconMap();
-        if (!lineIconMap) {
+        if (!lineIconMap || !isHoverInProp) {
             return;
         }
         const line = position.line;
