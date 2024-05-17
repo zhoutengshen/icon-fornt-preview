@@ -34,8 +34,12 @@ export function activate(context: vscode.ExtensionContext) {
 	let debounceFunc: ReturnType<typeof debounce>;
 	vscode.workspace.onDidChangeTextDocument(event => {
 		const fileType = getFileType(event.document.fileName, false);
+		if (!fileType || !enableFileTypes.includes(fileType)) {
+			return;
+		}
 		const config = ConfigService.getInstance().getCurWorkspaceConfigSync();
-		if (!checkAllDocHasIcon(config?.tagName, config?.propName) || !fileType || !enableFileTypes.includes(fileType)) {
+		if (!checkAllDocHasIcon(config?.tagName, config?.propName)) {
+			base64Decoration.clear();
 			return;
 		}
 		debounceFunc = debounceFunc || debounce(() => {

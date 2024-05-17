@@ -10,7 +10,7 @@ export class Base64Decoration {
         line: number,
     }> = [];
 
-    dispose() {
+    clear() {
         const { textEditorDecorationCacheList } = this;
         while (textEditorDecorationCacheList.length) {
             const { decoration } = textEditorDecorationCacheList.pop() || {};
@@ -21,7 +21,7 @@ export class Base64Decoration {
     }
 
     reRender() {
-        this.dispose();
+        this.clear();
         this.render();
     }
 
