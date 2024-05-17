@@ -57,7 +57,7 @@ export class IconFontParser implements IBasicParser {
                 res.on("end", () => {
                     const allData = Buffer.concat(chunks);
                     const stringData = allData.toString('utf8'); // 如果数据是字符串，可以指定编码
-                    console.log('Received data:', stringData);
+                    // console.log('Received data:', stringData);
                     resolve(stringData);
                 });
                 res.on("error", reject);
