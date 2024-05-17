@@ -1,7 +1,7 @@
 {
     "tagName": "my-icon",
     "propName": "name",
-    "target": "iconfont.js",
+    "target": "https://at.alicdn.com/t/c/font_4000788_1bqyuxtf29e.js",
     "parser": "iconfont",
     "iconFontPrefix": "icon-"
 }
