@@ -5,10 +5,17 @@ import * as vs from 'vscode';
  * @param filename 
  * @returns 
  */
-export const getFileType = (filename: string) => {
+export const getFileType = (filename: string, withDot: boolean = true) => {
     const regex = /\.[^.]+$/;
     const match = filename.match(regex);
-    return match ? match[0] : null; // 如果匹配到则返回后缀（包括点），否则返回null
+    const value = match ? match[0] : null;
+    if (!value) {
+        return value;
+    }
+    if (withDot) {
+        return value;
+    }
+    return value.replace('.', "");
 };
 
 /**
