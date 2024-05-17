@@ -21,7 +21,7 @@
 # 方法2：.vscode/setting 问价读取
 
 ### 鼠标悬停
-![hover](/doc/dome-hover.png)
+![hover](https://github.com/zhoutengshen/icon-fornt-preview/blob/main/doc/dome.jpg)
 
 ### 提示
-![completion](/doc/dome.jpg)
+![completion](https://github.com/zhoutengshen/icon-fornt-preview/blob/main/doc/dome-hover.png)
