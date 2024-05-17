@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { getRowIndexIconMap, isPositionInPropRange } from '../utils/ui';
+import { getRowIndexIconMap, isPositionInPropRange, parsePropValue } from '../utils/ui';
 import { IconService } from '../service/icon';
 import ConfigService from '../service/config';
 
@@ -15,11 +15,16 @@ export class Base64ImgHoverProvider implements vscode.HoverProvider {
         if (!iconName) {
             return;
         }
-        const icon = IconService.getIconList().find(icon => icon.id === iconName);
-        if (!icon) {
+        // 属性里面有多个图标
+        const iconList = parsePropValue(iconName);
+        const useIcons = IconService.getIconList().filter(icon => iconList.includes(icon.id));
+        if (!useIcons) {
             return;
         }
-        const iconMd = new vscode.MarkdownString(`<img height="100px" width="100px" src="${icon.base64}"></img>`, true);
+        const mdStr = useIcons.reduce((pre, icon) => {
+            return pre + `<img height="100px" width="100px" margin-left="8px" src="${icon.base64}"></img>`;
+        }, "");
+        const iconMd = new vscode.MarkdownString(`${mdStr}`, true);
         iconMd.supportHtml = true;
         return new vscode.Hover(iconMd);
     }

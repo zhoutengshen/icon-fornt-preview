@@ -6,6 +6,16 @@ const getRowTextMatchReg = (iconName = 'my-icon', prop = 'name') => {
     return new RegExp(regStr);
 };
 
+/** 获取标签的属性值 */
+const getPropValue = (iconName: string, prop: string, targetStr: string) => {
+    const tagReg = new RegExp(`<${iconName} `);
+    // 判断是否以<my-icon 开头 
+    if (!tagReg.test(targetStr)) {
+        return false;
+    }
+    const valueReg = new RegExp(`${prop}=(.+?)`);
+};
+
 /** 
  * 获取icon 所在行和icon 名称的映射
  * @param lineList 行号列表
@@ -80,4 +90,24 @@ export const isPositionInPropRange = (document: vscode.TextDocument, position: v
         return true;
     }
     return false;
+};
+
+/** 解析属性值 */
+export const parsePropValue = (str: string) => {
+    if (!str) {
+        return [];
+    }
+    // 去掉换行符号,\r\n \n \r
+    str = str.replace(/\r\n|\n|\r/g, '');
+    // 判断是否是三元表单上
+    const isTernaryOperatorReg = /\?(.*):(.*)$/;
+    if (isTernaryOperatorReg.test(str)) {
+        const [_, trueValue, falseValue] = str.match(isTernaryOperatorReg) || [];
+        if (trueValue && falseValue) {
+            return [trueValue, falseValue];
+        }
+    }
+    // 处理 "icon1 icon2 icon3"
+    const iconList = str.split(' ');
+    return iconList.map(icon => icon.trim());
 };
