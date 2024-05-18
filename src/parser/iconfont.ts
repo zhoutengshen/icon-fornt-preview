@@ -80,10 +80,8 @@ export class IconFontParser implements IBasicParser {
             const viewBox = s.match(/viewBox="(.+?)"/)?.[1] || '';
             const path = s.match(/<symbol .+?>(.+?)<\/symbol>/)?.[1] || '';
             const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">${path}</svg>`;
-            const miniSvgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 1024 1024">${path}</svg>`;
             const base64 = svg2ImgBase64(svgIcon);
-            const icon = svg2ImgBase64(miniSvgIcon);
-            return { id, base64, progId, icon, name: id };
+            return { id, base64, progId, name: id, graphics: path };
         }) || [];
         return svgSymbolList;
     }

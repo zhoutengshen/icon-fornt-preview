@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
-import { getRowIndexIconMap } from '../utils/ui';
+import { getLineIndexPropValueMap } from '../utils/ui';
 import { IconService } from '../service/icon';
+import { mergeSvgPathBeOne, svg2ImgBase64 } from '../utils';
 
 export class Base64Decoration {
     // rowIndex decoration 关联，索引是rowIndex
@@ -10,14 +11,21 @@ export class Base64Decoration {
         line: number,
     }> = [];
 
-    clear() {
+    clear(isDispose = false) {
         const { textEditorDecorationCacheList } = this;
         while (textEditorDecorationCacheList.length) {
             const { decoration } = textEditorDecorationCacheList.pop() || {};
             if (decoration) {
                 vscode.window.activeTextEditor?.setDecorations(decoration, []);
             }
+            if (decoration && isDispose) {
+                decoration.dispose();
+            }
         }
+    }
+
+    dispose() {
+        this.clear(true);
     }
 
     reRender() {
@@ -26,38 +34,40 @@ export class Base64Decoration {
     }
 
     render() {
-        const lineIconMap = getRowIndexIconMap();
-        if (!lineIconMap) {
+        
+        // 行索引和propValue的映射关系
+        const linePropValueMap = getLineIndexPropValueMap();
+        const lineIndexList = Object.keys(linePropValueMap);
+        if (!lineIndexList.length) {
             return;
         }
-        const keys = Object.keys(lineIconMap);
-        const iconNameImgMap = IconService.getIconList().reduce((prev, cur) => {
-            prev[cur.id] = cur.base64;
-            return prev;
-        }, {} as any);
-        keys.forEach(line => {
-            const name = lineIconMap[line];
-            const decorations: vscode.DecorationOptions[] = [
-                {
-                    range: new vscode.Range(parseInt(line, 10), 0, parseInt(line, 10), 0),
-                }
-            ];
-
-            const base64Img = iconNameImgMap[name];
-            if (!base64Img) {
+        // 遍历需要渲染图标的行号
+        lineIndexList.forEach(line => {
+            const propValue = linePropValueMap[line];
+            const useIconList = IconService.getIconByPropValue(propValue);
+            if (!useIconList.length) {
                 return;
             }
-            const decorationRenderOptions: vscode.DecorationRenderOptions = {
-                gutterIconPath: vscode.Uri.parse(base64Img),
+            // 合并多个svg
+            // const mergeSvg = mergeSvgPathBeOne(useIconList.filter(item => item.graphics).map(item => item.graphics!));
+            const mergeSvgBase64 = useIconList[0].base64;
+            const mergeName = useIconList.map(item => item.name).join('_');
+            const lineNum = parseInt(line, 10);
+            const decorationType = vscode.window.createTextEditorDecorationType({
                 gutterIconSize: 'contain',
-            };
-            const textEditorDecorationType: vscode.TextEditorDecorationType = vscode.window.createTextEditorDecorationType(<any>decorationRenderOptions);
-            this.textEditorDecorationCacheList.push({
-                decoration: textEditorDecorationType,
-                name,
-                line: parseInt(line, 10),
+                gutterIconPath: vscode.Uri.parse(mergeSvgBase64),
             });
-            vscode.window.activeTextEditor?.setDecorations(textEditorDecorationType, decorations);
+            const decorationOps = [
+                {
+                    range: new vscode.Range(lineNum, 1, lineNum, 1),
+                }
+            ];
+            vscode.window.activeTextEditor?.setDecorations(decorationType, decorationOps);
+            this.textEditorDecorationCacheList.push({
+                decoration: decorationType,
+                name: mergeName,
+                line: lineNum,
+            });
         });
     }
 }

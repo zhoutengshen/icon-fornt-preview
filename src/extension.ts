@@ -5,6 +5,7 @@ import { Base64Decoration } from './ui/decoration';
 import { Base64CompletionItemProvider } from './ui/completion-provider';
 import { getFileType } from './utils/file';
 import ConfigService from './service/config';
+import { IconService } from './service/icon';
 
 // 检查整个文档是否需要显示icon
 const checkAllDocHasIcon = (iconName = 'my-icon', prop = 'name') => {
@@ -17,11 +18,13 @@ const enableFileTypes = ['html', 'vue', 'jsx', 'tsx'];
 
 export function activate(context: vscode.ExtensionContext) {
 	console.log('插件激活');
+	IconService.load();
 	const base64Decoration = new Base64Decoration();
 	const provider = vscode.languages.registerCompletionItemProvider(
 		enableFileTypes, new Base64CompletionItemProvider(),
 		'"',
 		'=',
+		' '
 	);
 	context.subscriptions.push(provider);
 

@@ -1,29 +1,27 @@
 import * as vscode from 'vscode';
 import ConfigService from '../service/config';
 
-const getRowTextMatchReg = (iconName = 'my-icon', prop = 'name') => {
-    const regStr = `<${iconName}.*? [:]{0,1}${prop}=['"](.+?)['"]`;
-    return new RegExp(regStr);
-};
 
 /** 获取标签的属性值 */
-const getPropValue = (iconName: string, prop: string, targetStr: string) => {
+const getPropValue = (targetStr: string, iconName?: string, prop?: string) => {
     const tagReg = new RegExp(`<${iconName} `);
     // 判断是否以<my-icon 开头 
     if (!tagReg.test(targetStr)) {
-        return false;
+        return "";
     }
-    const valueReg = new RegExp(`${prop}=(.+?)`);
+    const valueReg = new RegExp(`${prop}="(.+?)"`);
+    const [_, value] = targetStr.match(valueReg) || [];
+    return value.trim() || "";
 };
 
 /** 
- * 获取icon 所在行和icon 名称的映射
+ * 获取icon 所在行和属性值的映射
  * @param lineList 行号列表
  */
-export const getRowIndexIconMap = (lineList: Array<number> = []) => {
+export const getLineIndexPropValueMap = (lineList: Array<number> = []) => {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
-        return;
+        return {};
     }
     const document = editor.document;
     let lineCount = document.lineCount;
@@ -36,11 +34,9 @@ export const getRowIndexIconMap = (lineList: Array<number> = []) => {
             lineIconMap;
         }
         const lineText = document.lineAt(curLine!).text;
-        const regex = getRowTextMatchReg(config?.tagName, config?.propName);
-        const matches = regex.exec(lineText);
-        if (matches && matches[1]) {
-            const name = matches[1].replace(/['"]/g, '');
-            lineIconMap[curLine!] = name;
+        const propValue = getPropValue(lineText, config?.tagName, config?.propName);
+        if (propValue) {
+            lineIconMap[curLine!] = propValue;
         }
     }
     return lineIconMap;
@@ -104,10 +100,9 @@ export const parsePropValue = (str: string) => {
     if (isTernaryOperatorReg.test(str)) {
         const [_, trueValue, falseValue] = str.match(isTernaryOperatorReg) || [];
         if (trueValue && falseValue) {
-            return [trueValue, falseValue];
+            return [trueValue.trim(), falseValue.trim()];
         }
     }
-    // 处理 "icon1 icon2 icon3"
-    const iconList = str.split(' ');
+    const iconList = str.split(" ");
     return iconList.map(icon => icon.trim());
 };
