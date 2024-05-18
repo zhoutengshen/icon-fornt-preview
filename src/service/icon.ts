@@ -61,6 +61,7 @@ export class IconService {
      */
     static getIconByPropValue(propValue: string) {
         const iconNameList = parsePropValue(propValue);
-        return iconNameList.map(name => this.getIconByIconName(name)).filter(v => !!v);
+        const list = iconNameList.map(name => this.getIconByIconName(name));
+        return list.filter(item => !!item) as IParserResult[];
     }
 }
