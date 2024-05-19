@@ -1,6 +1,7 @@
 import { IParserResult } from "../parser/basic";
 import { ParserFactory } from "../parser/factory";
 import { parsePropValue } from "../utils/ui";
+import { CacheService } from "./cache";
 import ConfigService from "./config";
 
 export class IconService {
@@ -10,6 +11,7 @@ export class IconService {
     // 名称-图片 Map 映射（用于快速数据查找）
     private static iconMap = new Map<string, IParserResult>();
 
+
     /** 加载图标 */
     static async load() {
         const configList = await ConfigService.getInstance().getWorkspaceConfig();
@@ -17,7 +19,18 @@ export class IconService {
             console.log("加载图标");
         }
         const resultPromiseList = configList.map(async config => {
-            return await ParserFactory.transform(config);
+            const cacheId = ParserFactory.getParser(config).genCacheId(config);
+            if (cacheId) {
+                const cacheIconList = await CacheService.getCache(cacheId);
+                if (cacheIconList?.length) {
+                    return cacheIconList;
+                }
+            }
+            const resultList = await ParserFactory.transform(config);
+            if (cacheId) {
+                CacheService.setCache(cacheId, resultList);
+            }
+            return resultList;
         });
         // [][]
         const resultList = (await Promise.all(resultPromiseList)).flat();

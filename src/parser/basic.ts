@@ -12,5 +12,17 @@ export interface IParserResult {
 }
 
 export interface IBasicParser {
-    transform(config: IConfig): Promise<IParserResult[]>
+    /**
+     * 生成图标列表
+     * @param config 
+     */
+    transform(config: IConfig): Promise<IParserResult[]>;
+
+    /**
+     * 缓存id生成规则，如果指定生成规则，那么缓存id将使用此规则生成
+     * 生成时机：缓存文件不存在时
+     * 返回undefined表示不缓存
+     * @param config 
+     */
+    genCacheId(config: IConfig): string | undefined;
 }

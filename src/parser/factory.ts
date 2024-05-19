@@ -11,7 +11,19 @@ export class ParserFactory {
     static transform(config: IConfig): Promise<IParserResult[]> {
         const parserName = config.parser;
         const parser = ParserFactory.parserMap[parserName];
+        if (!parser) {
+            throw new Error(`parser ${parserName} not found`);
+        }
         return parser.transform(config);
+    }
+
+    static getParser(config: IConfig): IBasicParser {
+        const parserName = config.parser;
+        const parser = ParserFactory.parserMap[parserName];
+        if (!parser) {
+            throw new Error(`parser ${parserName} not found`);
+        }
+        return parser;
     }
 
     /**

@@ -8,6 +8,12 @@ import * as vs from 'vscode';
 
 // 阿里字体图标解析（提取）
 export class IconFontParser implements IBasicParser {
+    genCacheId(config: IConfig): string | undefined {
+        if (isNetworkUrl(config.target)) {
+            return `iconfont_${config.target}`;
+        }
+    }
+
     async transform(config: IConfig): Promise<IParserResult[]> {
         const { target } = config;
         let content;

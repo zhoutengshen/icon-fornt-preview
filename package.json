@@ -2,7 +2,7 @@
   "name": "icon-font-preview",
   "displayName": "icon-font-preview",
   "description": "字体图标预览",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "publisher": "zts",
   "engines": {
     "vscode": "^1.89.0"
