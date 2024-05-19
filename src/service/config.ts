@@ -1,5 +1,6 @@
 import * as vs from 'vscode';
 import { isExistFile } from '../utils/file';
+import pckJson from '../../package.json';
 
 // 文件系统
 const { fs } = vs.workspace;
@@ -77,33 +78,82 @@ export default class ConfigService {
 
     /**
      * 加载工作空间配置文件
+     * icon-preview.config.json 文件优先于 vscode setting 配置
+     * 从四个地方获取配置文件
+     *  1. 当前项目的根目录下
+     *  2. 当前项目的 .vscode 目录下 icon-preview.config.json
+     *  3. 当前项目的 .vscode/setting.json
+     *  4. 全局的 setting.json
      */
     public async loadWorkspaceConfig() {
-        const path = 'icon-preview.config.json';
-        // 根
-        const rootUriPromiseList = vs.workspace.workspaceFolders?.map(async item => ({
-            path: vs.Uri.joinPath(item.uri, path),
-            workspace: item.uri,
-            isExist: await isExistFile(vs.Uri.joinPath(item.uri, path))
-        })) || [];
-        const rootUris = (await Promise.all(rootUriPromiseList)).filter(item => item.isExist);
-        if (!rootUris.length) {
-            console.log(`工作空间没有配置文件，请添加：${path}`);
+        const iconPreviewConfigs = await this.loadWorkspaceIconPreviewConfig();
+        if ((iconPreviewConfigs).length) {
+            return iconPreviewConfigs;
         }
-        const resultPromiseList = rootUris.map(async config => {
-            const path = config.path;
-            const workspace = config.workspace;
-            const resp = await fs.readFile(path);
-            const jsonStr = resp.toString();
-            console.log(`加载${path.toString()}工作空间配置文件`);
-            return {
-                ...JSON.parse(jsonStr) as IConfig,
-                workspace: workspace.toString()
-            };
-        }) || [];
+        const settingConfigs = await this.loadWorkspaceSettingConfig();
+        if ((settingConfigs).length) {
+            return settingConfigs;
+        }
+        console.log('没有找到配置文件');
+        return [];
+    }
 
-        this.configs = await Promise.all(resultPromiseList);
-        return this.configs;
+    /**
+     * 加载setting 的配置
+     * @returns 
+     */
+
+    private async loadWorkspaceSettingConfig() {
+        const progName = pckJson.name;
+        const settingConfigs = await vs.workspace.getConfiguration(progName).get('workspaceConfigs');
+        if (settingConfigs && Array.isArray(settingConfigs)) {
+            return settingConfigs;
+        }
+        return [];
+    }
+
+    private async loadWorkspaceIconPreviewConfig() {
+        const fileName = 'icon-preview.config.json';
+        // 根
+        const rootUriPromiseList = vs.workspace.workspaceFolders?.map(async item => {
+            let config = null;
+            // 根目录配置文件
+            const proConfigPath = vs.Uri.joinPath(item.uri, fileName);
+            // 项目.vscode/icon-preview.config.json
+            const proVscodeConfigPath = vs.Uri.joinPath(item.uri, '.vscode', fileName);
+            if (await isExistFile(proConfigPath)) {
+                config = {
+                    path: proConfigPath,
+                    workspace: item.uri,
+                    isExist: true
+                };
+            } else if (await isExistFile(proVscodeConfigPath)) {
+                config = {
+                    path: proVscodeConfigPath,
+                    workspace: item.uri,
+                    isExist: true
+                };
+            }
+            return config;
+        }) || [];
+        let rootUris = (await Promise.all(rootUriPromiseList)).filter(item => item && item.isExist);
+        if (rootUris.length) {
+            const resultPromiseList = rootUris.filter(v => !!v).map(async config => {
+                const path = config.path;
+                const workspace = config.workspace;
+                const resp = await fs.readFile(path);
+                const jsonStr = resp.toString();
+                console.log(`加载${path.toString()}工作空间配置文件`);
+                return {
+                    ...JSON.parse(jsonStr) as IConfig,
+                    workspace: workspace.toString()
+                };
+            }) || [];
+
+            this.configs = await Promise.all(resultPromiseList);
+            return this.configs;
+        }
+        return [];
     }
 
 }
