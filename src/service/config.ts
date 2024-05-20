@@ -63,6 +63,9 @@ export default class ConfigService {
         if (!this.configs?.length) {
             this.getWorkspaceConfig();
         }
+        if (this.configs?.length === 1) {
+            return this.configs[0];
+        }
         return this.configs?.find(item => {
             const { workspace } = item;
             if (!workspace) {
@@ -86,16 +89,20 @@ export default class ConfigService {
      *  4. 全局的 setting.json
      */
     public async loadWorkspaceConfig() {
+        let configList: IConfig[] = [];
         const iconPreviewConfigs = await this.loadWorkspaceIconPreviewConfig();
         if ((iconPreviewConfigs).length) {
-            return iconPreviewConfigs;
+            configList = iconPreviewConfigs;
         }
         const settingConfigs = await this.loadWorkspaceSettingConfig();
         if ((settingConfigs).length) {
-            return settingConfigs;
+            configList = settingConfigs;
         }
-        console.log('没有找到配置文件');
-        return [];
+        if (!configList.length) {
+            console.log('没有找到配置文件');
+        }
+        this.configs = configList;
+        return this.configs;
     }
 
     /**
@@ -105,9 +112,23 @@ export default class ConfigService {
 
     private async loadWorkspaceSettingConfig() {
         const progName = pckJson.name;
-        const settingConfigs = await vs.workspace.getConfiguration(progName).get('workspaceConfigs');
-        if (settingConfigs && Array.isArray(settingConfigs)) {
-            return settingConfigs;
+        const orginConfig = vs.workspace.getConfiguration(progName);
+        const config: IConfig = {
+            target: '',
+            parser: '',
+            tagName: '',
+            propName: '',
+            iconFontPrefix: '',
+            workspace: '',
+        };
+        Object.keys(config).forEach(key => {
+            const value = orginConfig.get(key);
+            if (value) {
+                config[key] = value;
+            }
+        });
+        if (config && config) {
+            return [config];
         }
         return [];
     }
@@ -139,8 +160,8 @@ export default class ConfigService {
         let rootUris = (await Promise.all(rootUriPromiseList)).filter(item => item && item.isExist);
         if (rootUris.length) {
             const resultPromiseList = rootUris.filter(v => !!v).map(async config => {
-                const path = config.path;
-                const workspace = config.workspace;
+                const path = config!.path;
+                const workspace = config!.workspace;
                 const resp = await fs.readFile(path);
                 const jsonStr = resp.toString();
                 console.log(`加载${path.toString()}工作空间配置文件`);
@@ -150,8 +171,7 @@ export default class ConfigService {
                 };
             }) || [];
 
-            this.configs = await Promise.all(resultPromiseList);
-            return this.configs;
+            return await Promise.all(resultPromiseList);
         }
         return [];
     }

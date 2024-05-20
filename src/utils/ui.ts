@@ -100,9 +100,12 @@ export const parsePropValue = (str: string) => {
     if (isTernaryOperatorReg.test(str)) {
         const [_, trueValue, falseValue] = str.match(isTernaryOperatorReg) || [];
         if (trueValue && falseValue) {
-            return [trueValue.trim(), falseValue.trim()];
+            const valueList = [trueValue.trim(), falseValue.trim()];
+            // 去重
+            return [...new Set(valueList)];
         }
     }
     const iconList = str.split(" ");
-    return iconList.map(icon => icon.trim());
+    const valueList = iconList.map(icon => icon.trim());
+    return [...new Set(valueList)];
 };
