@@ -8,8 +8,6 @@ const { fs } = vs.workspace;
 
 /** 配置文件接口 */
 export interface IConfig {
-    /** 其他扩展的属性 */
-    [key: string]: any;
     /** 标签名称 */
     tagName?: string
     /** 属性名 */
@@ -18,8 +16,8 @@ export interface IConfig {
     target: string
     /** 解析器 */
     parser: string
-    /** 工作空间 */
-    workspace?: string
+    /** 工作目录 */
+    workspaceFolder: string
     // ============ 扩展属性
     // 阿里图标前缀
     iconFontPrefix?: string
@@ -67,12 +65,12 @@ export default class ConfigService {
             return this.configs[0];
         }
         return this.configs?.find(item => {
-            const { workspace } = item;
-            if (!workspace) {
+            const { workspaceFolder } = item;
+            if (!workspaceFolder) {
                 return false;
             }
             // 判断了 Uri 是否是包含关系
-            const targetUri = vs.Uri.parse(workspace);
+            const targetUri = vs.Uri.parse(workspaceFolder);
             const curUri = vs.window.activeTextEditor?.document.uri;
             const isInclude = curUri && curUri.fsPath.includes(targetUri.fsPath);
             return isInclude;
@@ -113,17 +111,20 @@ export default class ConfigService {
     private async loadWorkspaceSettingConfig() {
         const progName = pckJson.name;
         const orginConfig = vs.workspace.getConfiguration(progName);
+
         const config: IConfig = {
             target: '',
             parser: '',
             tagName: '',
             propName: '',
             iconFontPrefix: '',
-            workspace: '',
+            workspaceFolder: vs.workspace.workspaceFolders?.[0].uri.toString()!,
         };
+
         Object.keys(config).forEach(key => {
             const value = orginConfig.get(key);
             if (value) {
+                // @ts-ignore
                 config[key] = value;
             }
         });

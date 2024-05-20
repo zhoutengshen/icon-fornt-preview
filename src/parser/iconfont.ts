@@ -35,8 +35,8 @@ export class IconFontParser implements IBasicParser {
      * @param config 
      */
     async loadLocalFile(config: IConfig) {
-        const { target, workspace } = config;
-        const fullPath = vs.Uri.joinPath(vs.Uri.parse(workspace!), target);
+        const { target, workspaceFolder } = config;
+        const fullPath = vs.Uri.joinPath(vs.Uri.parse(workspaceFolder), target);        
         const isExist = await isExistFile(fullPath);
         if (!isExist) {
             return "";
